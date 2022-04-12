@@ -6,13 +6,15 @@ import Cadastros from './Components/Cadastros';
 import axios from 'axios';
 import Detalhes from './Components/Detalhes';
 import ReactTooltip from 'react-tooltip'
+// import { toast, ToastContainer } from 'react-toastify';
+// import 'react-toastify/dist/ReactToastify.min.css'; 
+import toast, { Toaster } from 'react-hot-toast';
 
 const headers = {
   headers: {
     Authorization: "bruno-siqueira-shaw"
   }
 };
-
 
 const TelaTotal = styled.div`
 display: flex;
@@ -35,8 +37,8 @@ display: flex;
 width: 6em;
 justify-content: space-between;
 color: #1c001c;
+margin: 0.5em;
 padding: 0.5em;
-
 div:hover{
   font-weight: bold;
 }
@@ -47,6 +49,48 @@ button:hover{
     background-color: #e47c7c;
 }
 `
+
+const ConfirmContainer = styled.div`
+display: flex;
+flex-direction: column;
+height: 18vh;
+width: 25vw;
+align-items: center;
+justify-content: center;
+font-weight: bolder;
+`
+
+const ContainerButton = styled.div`
+display: flex;
+align-items: center;
+justify-content: center;
+`
+
+const ButtomSim = styled.div`
+button{
+  height: 2.5em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  width: 7em;
+  border: 0.2px solid #afadad;
+}
+button:hover{
+  background-color: #48eb82;
+}
+`
+const ButtomNao = styled.div`
+button{
+  height: 2.5em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  width: 7em;
+  border: 0.2px solid #afadad;
+}
+button:hover{
+  background-color: #ec6e78;
+}
+`
+
 
 class App extends React.Component {
   state = {
@@ -93,7 +137,8 @@ postUser = () => {
     .then((res) => {
       //Pegartodas as Users
       this.getAllUser();
-      alert("Usuário adicionado com sucesso")
+      this.toastfyCadastroS()
+      this.setState({tela: "cadastros"})
       //Deixar o texto do input com um valor vazio
       this.setState({
         inputNome: ""
@@ -104,7 +149,7 @@ postUser = () => {
     })
     .catch((err) => {
       //Alertar caso um erro aconteça
-      alert("Erro ao criar o usuário");
+      toast.error("Erro ao criar o usuário  verefique as informações");
     });
 };
 
@@ -117,12 +162,12 @@ DeleteUser = () => {
     .then((res) => {
       //Pegartodas as Users
       this.getAllUser();
-      alert("Usuario deletado com sucesso")
+      this.toastfyDeleted()
       //Deixar o texto do input com um valor vazio
     })
     .catch((err) => {
       //Alertar caso um erro aconteça
-      alert("Erro ao deletar o usuário");
+      toast.error("Erro ao deletar o usuário");
     });
 };
 
@@ -139,7 +184,7 @@ GetUserById = () => {
     })
     .catch((err) => {
       //Alertar caso um erro aconteça
-      alert(err.data);
+      toast.error(err.data);
     });
 };
 
@@ -155,17 +200,51 @@ onChangeEmail = (e) => {
   });
 };
 
-onClickPost = () => {
+toastfyCadastroS = () => {
+  toast.success("Cadastro efetuado com sucesso", {
+    duration: 1500})
+}
+
+toastfyDeleted = () => {
+  toast.success("Cadastro excluido com sucesso", {
+    duration: 1500})
+}
+
+onClickYes = () => {
+  this.postUser()
+}
+
+onClickNo = () => {
+  toast.success("Cadastro cancelado com sucesso")
+}
+
+onSecoundPart = () => {
+  
+}
+
+onClickPost = async() => {
   if(this.state.inputEmail.length > 0 && this.state.inputNome.length > 0){
-    let confirm = window.confirm("Tem certeza?")
-    if (confirm == true){
-      this.postUser()
-      this.setState({tela: "cadastros"})
-    }else{
-      alert("Cadastro cancelado com sucesso")
-    }
+    toast((t) => (
+      <ConfirmContainer>
+        <h4>Confirmar cadastro?</h4>
+        <ContainerButton>
+          <ButtomSim>
+            <button onClick={() => {this.onClickYes() ; toast.dismiss(t.id)}}>
+              Confirmar
+            </button>
+          </ButtomSim>
+          <ButtomNao> 
+            <button onClick={() => {this.onClickNo() ; toast.dismiss(t.id)}}>
+              Cancelar
+            </button>
+          </ButtomNao>
+        </ContainerButton>
+      </ConfirmContainer>
+    ), {
+      duration: Infinity});
   } else{
-    alert("Complete os dados corretamente")
+    toast.error("Complete os dados corretamente", {
+      duration: 1500})
   }
 };
 
@@ -179,6 +258,7 @@ onClickReturnUsers = () => {
 
 onMouseEnterId = (id) => {
   this.setState({currentid: id})
+  this.GetUserById()
 }
 
 onClickDelete = () => {
@@ -196,6 +276,7 @@ onClickDetail = () => {
   this.GetUserById()
   this.setState({tela: "detalhes"})
 };
+
 
   render(){
     const componentsUser = this.state.users.map((user) => {
@@ -217,7 +298,9 @@ onClickDetail = () => {
         onChangeEmail = {this.onChangeEmail}
         onClickPost = {this.onClickPost}
         onClickCadastrados = {this.onClickCadastrados}
-        />
+        handleClick = {this.handleClick}
+        >
+        </TelaInicial>
         )
         case 'cadastros':
         return (
